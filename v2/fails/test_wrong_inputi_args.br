@@ -1,0 +1,7 @@
+[func main [] [print [inputi "a" "b"]]]
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/

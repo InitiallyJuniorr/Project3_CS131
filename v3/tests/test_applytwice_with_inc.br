@@ -1,0 +1,9 @@
+[func applytwice [f x] [f [f x]]]
+[func inc [n] [+ n 1]]
+[func main [] [print [applytwice inc 4]]]
+
+/*
+*OUT*
+6
+*OUT*
+*/

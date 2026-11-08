@@ -1,0 +1,8 @@
+[func g [] [seq [] [* 10 10] [* 20 10] [+ 1 1]]]
+[func main [] [print [g]]]
+
+/*
+*OUT*
+2
+*OUT*
+*/

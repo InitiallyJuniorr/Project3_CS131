@@ -1,0 +1,8 @@
+[func main [] [seq [[x 1]] [seq [[y 2]] [print y]] [print y]]]
+
+/*
+*OUT*
+2
+ErrorType.NAME_ERROR
+*OUT*
+*/

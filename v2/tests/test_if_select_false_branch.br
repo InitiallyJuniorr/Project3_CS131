@@ -1,0 +1,7 @@
+[func main [] [print [if #f 1 2]]]
+
+/*
+*OUT*
+2
+*OUT*
+*/

@@ -1,0 +1,7 @@
+[func main [] [print [>= "b" "a"]]]
+
+/*
+*OUT*
+#t
+*OUT*
+*/

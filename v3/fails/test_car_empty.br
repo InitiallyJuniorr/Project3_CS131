@@ -1,0 +1,7 @@
+[func main [] [print [car { }]]]
+
+/*
+*OUT*
+ErrorType.FAULT_ERROR
+*OUT*
+*/

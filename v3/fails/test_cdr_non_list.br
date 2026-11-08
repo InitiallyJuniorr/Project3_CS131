@@ -1,0 +1,7 @@
+[func main [] [print [cdr 5]]]
+
+/*
+*OUT*
+ErrorType.TYPE_ERROR
+*OUT*
+*/

@@ -1,0 +1,7 @@
+[func main [] [seq [[L {1 2 3}]] [print [cdr L]]]]
+
+/*
+*OUT*
+{2 3}
+*OUT*
+*/

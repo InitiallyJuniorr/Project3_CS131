@@ -1,0 +1,9 @@
+[func f [x] x]
+[func f [y] [+ y 1]]
+[func main [] 0]
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/

@@ -1,0 +1,7 @@
+[func main [] [lambda [x x] 1]]
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/

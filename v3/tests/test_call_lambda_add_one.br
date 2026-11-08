@@ -1,0 +1,7 @@
+[func main [] [print [[lambda [x] [+ x 1]] 40]]]
+
+/*
+*OUT*
+41
+*OUT*
+*/

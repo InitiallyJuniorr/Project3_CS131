@@ -1,0 +1,8 @@
+[func id [x] x]
+[func main [] [seq [[L {id}]] [print [[car L] 9]]]]
+
+/*
+*OUT*
+9
+*OUT*
+*/

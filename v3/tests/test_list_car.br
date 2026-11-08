@@ -1,0 +1,7 @@
+[func main [] [seq [[L {1 2 3}]] [print [car L]]]]
+
+/*
+*OUT*
+1
+*OUT*
+*/

@@ -1,0 +1,9 @@
+[func id [x] x]
+[func id [x y] [+ x y]]
+[func main [] [print [id 2 3]]]
+
+/*
+*OUT*
+5
+*OUT*
+*/

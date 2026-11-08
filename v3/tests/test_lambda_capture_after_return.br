@@ -1,0 +1,8 @@
+[func make_adder [x] [lambda [y] [+ x y]]]
+[func main [] [seq [[f [make_adder 10]]] [print [f 5]]]]
+
+/*
+*OUT*
+15
+*OUT*
+*/

@@ -1,0 +1,9 @@
+[func foo [] 1]
+[func foo [] 2]
+[func main [] [print 0]]
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/

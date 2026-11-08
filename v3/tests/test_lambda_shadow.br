@@ -1,0 +1,7 @@
+[func main [] [seq [[x 10] [f [lambda [x] x]]] [print [f 7]]]]
+
+/*
+*OUT*
+7
+*OUT*
+*/

@@ -1,0 +1,7 @@
+[func main [] [print 1 "x" #t]]
+
+/*
+*OUT*
+1x#t
+*OUT*
+*/

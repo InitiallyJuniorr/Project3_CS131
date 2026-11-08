@@ -1,0 +1,13 @@
+[func main [] [print [inputi]]]
+
+/*
+*IN*
+notanumber
+*IN*
+*/
+
+/*
+*OUT*
+0
+*OUT*
+*/

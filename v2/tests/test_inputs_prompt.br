@@ -1,0 +1,14 @@
+[func main [] [print [inputs [+ "?" ""]]]]
+
+/*
+*IN*
+ok
+*IN*
+*/
+
+/*
+*OUT*
+?
+ok
+*OUT*
+*/

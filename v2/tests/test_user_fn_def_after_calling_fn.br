@@ -1,0 +1,8 @@
+[func main [] [print [add2 40]]]
+[func add2 [n] [+ n 2]]
+
+/*
+*OUT*
+42
+*OUT*
+*/

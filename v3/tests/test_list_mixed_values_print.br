@@ -1,0 +1,7 @@
+[func main [] [print {1 "two" #t}]]
+
+/*
+*OUT*
+{1 two #t}
+*OUT*
+*/

@@ -1,0 +1,8 @@
+[func id [x] x]
+[func main [] [print [id 1 2]]]
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/
