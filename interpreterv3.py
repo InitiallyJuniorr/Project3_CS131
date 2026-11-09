@@ -133,8 +133,8 @@ class Interpreter(InterpreterBase):
 
         if node.elem_type == InterpreterBase.QUALIFIED_NAME_NODE:
             var_name = node.get("name")
-            found, val = self.scope_search(var_name)
-            if found:
+            exists, val = self.scope_search(var_name)
+            if exists:
                 return val
             if var_name in self.func_names:
                 return Func_Value(var_name)
@@ -166,21 +166,25 @@ class Interpreter(InterpreterBase):
         return final_expr
 
     def eval_fcall(self, fcall_node):
-        func_name = fcall_node.get("fn").get("name")
-        """ Handle function and variable overlapping names """
-        var_overlap = False
-        for scope in reversed(self.scopes):
-            if func_name in scope:
-                var_overlap = True
-                break
-        
-        if var_overlap:
-            super().error(ErrorType.TYPE_ERROR, f" Variable {func_name} is not a function, plz don't call it")
+        evaluated_args = [self.eval_expr(arg) for arg in (fcall_node.get("args") or [])]
+        func_node = fcall_node.get("fn")
 
-        func_args = fcall_node.get("args")
-        evaluated_args = [self.eval_expr(arg) for arg in func_args]
+        """ Handle user specified functions / built-ins """
+        if fn_node.elem_type == InterpreterBase.QUALIFIED_NAME_NODE:
+            name = fn_node.get("name")
+            exists, val = self.scope_search(name)
+            if exists:
+                return self.call_value(val, evaluated_args)
+            elif name in self.BUILTINS:
+                return self.handle_builtin(name, eval_args)
+            elif name in self.func_names:
+                return self.call_custom_function(name, evaluated_args)
+            super().error(ErroType.NAME_ERROR, f"Unknown function {name} with {len(evaluated_args)} params")
 
-        """ Handle print statement by outputting the evaluated arguments """
+        return self.call_value(self.eval_expr(func_node), evaluated_args)
+
+    def handle_builtin(self, name, args):
+               """ Handle print statement by outputting the evaluated arguments """
         if func_name == "print":
             out_str = "".join(self.print_format(arg) for arg in evaluated_args)
             super().output(out_str)
@@ -292,15 +296,6 @@ class Interpreter(InterpreterBase):
                 return left <= right
             if func_name == ">=":
                 return left >= right
-
-
-
-        """ Handle user specified functions """
-        if (func_name, len(evaluated_args)) in self.func_defs:
-            return self.handle_custom_function(func_name, evaluated_args)
-
-        """ Handle unkown functions """ 
-        super().error(ErrorType.NAME_ERROR, f"Unknown function {func_name} with {len(evaluated_args)} params")
 
     def handle_custom_function(self, func_name, evaluated_args):
         key = (func_name, len(evaluated_args))
