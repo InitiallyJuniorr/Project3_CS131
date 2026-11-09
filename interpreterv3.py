@@ -184,7 +184,7 @@ class Interpreter(InterpreterBase):
         return self.call_value(self.eval_expr(func_node), evaluated_args)
 
     def handle_builtin(self, name, args):
-               """ Handle print statement by outputting the evaluated arguments """
+        """ Handle print statement by outputting the evaluated arguments """
         if func_name == "print":
             out_str = "".join(self.print_format(arg) for arg in evaluated_args)
             super().output(out_str)
