@@ -371,7 +371,7 @@ class Interpreter(InterpreterBase):
             arg = evaluated_args[0]
             if type(arg) is not list:
                 super().error(ErrorType.TYPE_ERROR, "length takes only list arguments")
-            return len(list)
+            return len(arg)
 
     def handle_custom_function(self, func_name, evaluated_args):
         key = (func_name, len(evaluated_args))
