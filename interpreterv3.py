@@ -323,6 +323,56 @@ class Interpreter(InterpreterBase):
             if func_name == ">=":
                 return left >= right
 
+        """ ALL LIST OPERATORS """
+        """ car returns the first value of a nonempty list """
+        if func_name == "car":
+            if len(evaluated_args) != 1:
+                super().error(ErrorType.NAME_ERROR, "car takes 1 arg")
+            arg = evaluated_args[0]
+            if type(arg) is not list:
+                super().error(ErrorType.TYPE_ERROR, "car takes only list arguments")
+            if len(arg) == 0:
+                super().error(ErrorType.FAULT_ERROR, "car must not be taken of an empty list FAULT")
+            return arg[0]
+
+        """ cdr returns a new list containing every element except the first """
+        if func_name == "cdr":
+                    if len(evaluated_args) != 1:
+                        super().error(ErrorType.NAME_ERROR, "cdr takes 1 arg")
+                    arg = evaluated_args[0]
+                    if type(arg) is not list:
+                        super().error(ErrorType.TYPE_ERROR, "cdr takes only list arguments")
+                    if len(arg) == 0:
+                        super().error(ErrorType.FAULT_ERROR, "cdr must not be taken of an empty list FAULT")
+                    return arg[1:]
+
+        """ cons operator prepends a list with any element """
+        if func_name == "cons":
+            if len(evaluated_args) != 2:
+                super().error(ErrorType.NAME_ERROR, "cons takes 2 args")
+            arg1, arg2 = evaluated_args[0], evaluated_args[1]
+            if type(arg2) is not list:
+                super().error(ErrorType.TYPE_ERROR, "cons arg2 must be list")
+            return [arg1] + arg2
+
+        """ append concatenates two lists """
+        if func_name == "append":
+            if len(evaluated_args) != 2:
+                super().error(ErrorType.NAME_ERROR, "append takes 2 args")
+            arg1, arg2 = evaluated_args[0], evaluated_args[1]
+            if type(arg1) is not list or type(arg2) is not list:
+                super().error(ErrorType.TYPE_ERROR, "append must take both list arguments")
+            return arg1 + arg2
+
+        """ length returns the number of elements in a list """
+        if func_name == "length":
+            if len(evaluated_args) != 1:
+                super().error(ErrorType.NAME_ERROR, "length takes 1 argument")
+            arg = evaluated_args[0]
+            if type(arg) is not list:
+                super().error(ErrorType.TYPE_ERROR, "length takes only list arguments")
+            return len(list)
+
     def handle_custom_function(self, func_name, evaluated_args):
         key = (func_name, len(evaluated_args))
         if key not in self.func_defs:
