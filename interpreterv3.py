@@ -2,7 +2,19 @@ from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 
 
+class Lambda_Func:
+    def __init__(self,formals,body,captured):
+        self.formals = formals
+        self.body = body
+        self.captured = captured
+
+class Func_Value:
+    def __init__(self, name):
+        self.name = name
+
 class Interpreter(InterpreterBase):
+    BUILTINS = {"print", "inputi", "inputs", "car", "cdr", "cons", "append", "length", "+", "-", "*", "/", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "!"}
+
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp)
         self.func_defs = {}
@@ -10,6 +22,7 @@ class Interpreter(InterpreterBase):
 
     def run(self, program):
         self.func_defs = {}
+        self.func_names = set()
         self.scopes = [{}]
 
         ast = parse_program(program)
@@ -17,19 +30,22 @@ class Interpreter(InterpreterBase):
         funcs = ast.get("functions") or []
         main_func_node = None
         for func in funcs:
-            func_name = func.get("name")
+            name = func.get("name")
+            params = [arg.get("name") for arg in (func.get("args") or [])]
+            if len(params) != len(set(params)):
+                super().error(ErrorType.NAME_ERROR, f"Duplicate param names in function {name}")
+            func_pair = (name, len(params))
+            if func_pair in self.func_defs:
+                super().error(ErrorType.NAME_ERROR, f"Duplicate function {name} with {len(params)} paramters")
 
-        # Check duplicate function names 
-            if func_name in self.func_defs:
-                super().error(ErrorType.NAME_ERROR, f"Duplicate function definition found: {func_name}")
-
-            self.func_defs[func_name] = func
+            self.func_defs[func_pair] = func
+            self.func_names.add(name)
 
         # Call error if there is no main function 
-        if "main" not in self.func_defs:
-            super().error(ErrorType.NAME_ERROR, "No main function found")
+        if ("main",0) not in self.func_defs:
+            super().error(ErrorType.NAME_ERROR, "No main function found with exactly 0 arguments")
         else: 
-            main_func_node = self.func_defs["main"]
+            main_func_node = self.func_defs[("main", 0)]
 
         args = main_func_node.get("args")
         if len(args) > 0:
@@ -45,6 +61,12 @@ class Interpreter(InterpreterBase):
     def pop_scope(self):
         """ Removes top scope from scope list """
         self.scopes.pop()
+
+    def scope_search(self, name):
+        for scope in reversed(self.scopes):
+            if name in scope:
+                return True, scope[name]
+        return False, None
 
     def get_var(self, name):
         for scope in reversed(self.scopes):
@@ -82,10 +104,17 @@ class Interpreter(InterpreterBase):
             return node.get("val")
 
         if node.elem_type == InterpreterBase.LIST_NODE:
-            return [self.eval_expr(elem) for elem in node.get("elements")] or []
+            return [self.eval_expr(elem) for elem in node.get("elements") or []]
 
-        if node.elem_type == InterpretBase.LAMBDA_NODE:
-            return node.get("val")
+        if node.elem_type == InterpreterBase.LAMBDA_NODE:
+            formals = [arg.get("name") for arg in (node.get("formals") or [])]
+            if len(formals) != len(set(formals)):
+                super().error(ErrorType.NAME_ERROR, "Duplicates parameters in lambda")
+            body = node.get("body")
+            captured = {}
+            for scope in self.scopes:
+                captured.update(scope)
+            return Lambda_Func(formals,body, captured)
 
         if node.elem_type == InterpreterBase.NOT_NODE:
             val = self.eval_expr(node.get("op1"))
@@ -104,7 +133,14 @@ class Interpreter(InterpreterBase):
 
         if node.elem_type == InterpreterBase.QUALIFIED_NAME_NODE:
             var_name = node.get("name")
-            return self.get_var(var_name)
+            found, val = self.scope_search(var_name)
+            if found:
+                return val
+            if var_name in self.func_names:
+                return Func_Value(var_name)
+            if var_name in self.BUILTINS:
+                super().error(ErrorType.NAME_ERROR, f"BUILTIN {var_name} can't be used")
+            super().error(ErrorType.NAME_ERROR, f"Variable {var_name} can't be identified")            
 
         if node.elem_type == InterpreterBase.FCALL_NODE:
             return self.eval_fcall(node)
@@ -260,19 +296,16 @@ class Interpreter(InterpreterBase):
 
 
         """ Handle user specified functions """
-        if func_name in self.func_defs:
+        if (func_name, len(evaluated_args)) in self.func_defs:
             return self.handle_custom_function(func_name, evaluated_args)
 
         """ Handle unkown functions """ 
-        super().error(ErrorType.NAME_ERROR, f"Unknown function {func_name}")
+        super().error(ErrorType.NAME_ERROR, f"Unknown function {func_name} with {len(evaluated_args)} params")
 
     def handle_custom_function(self, func_name, evaluated_args):
-        func_node = self.func_defs[func_name]
+        key = (func_name, len(evaluated_args))
+        func_node = self.func_defs[key]
         param_nodes = func_node.get("args")
-
-    # Input mismatch
-        if len(param_nodes) != len(evaluated_args):
-            super().error(ErrorType.NAME_ERROR, f"Function {func_name} expected {len(param_nodes)} inputs, and received {len(evaluated_args)}")
 
         old_scopes = self.scopes
         self.scopes = [{}]
