@@ -91,7 +91,31 @@ class Interpreter(InterpreterBase):
             return "#t"
         if val is False:
             return "#f"
+        if type(val) is list return "{" + " ".join(self.print_format(c) for c in val) + "}"
         return str(val)
+
+    def call_value(self, func, args):
+        if isinstance(func, Func_Value):
+            return self.handle_custom_function(func.name, args)
+        if isinstance(func, Lambda_Func):
+            return self.call_lambda(func, args)
+        super().error(ErrorType.TYPE_ERROR, f"please do not call the function that you called")
+
+    def call_lambda(self, func, args):
+        if len(args) != len(func.formals):
+            super().error(ErrorType.NAME_ERROR, f"lambda args did not match given")
+
+        old_scopes = self.scopes
+        self.scopes = [dict(func.captured), {}]
+
+        for name, val in zip(func.formals, args):
+            self.define_var(name, val)
+
+        result = self.eval_expr(func.body)
+        self.scopes = old_scopes
+        return result
+
+
 
     def eval_expr(self, node):
         if node.elem_type == InterpreterBase.INT_NODE:
@@ -170,20 +194,20 @@ class Interpreter(InterpreterBase):
         func_node = fcall_node.get("fn")
 
         """ Handle user specified functions / built-ins """
-        if fn_node.elem_type == InterpreterBase.QUALIFIED_NAME_NODE:
-            name = fn_node.get("name")
+        if func_node.elem_type == InterpreterBase.QUALIFIED_NAME_NODE:
+            name = func_node.get("name")
             exists, val = self.scope_search(name)
             if exists:
                 return self.call_value(val, evaluated_args)
             elif name in self.BUILTINS:
-                return self.handle_builtin(name, eval_args)
+                return self.handle_builtin(name, evaluated_args)
             elif name in self.func_names:
-                return self.call_custom_function(name, evaluated_args)
-            super().error(ErroType.NAME_ERROR, f"Unknown function {name} with {len(evaluated_args)} params")
+                return self.handle_custom_function(name, evaluated_args)
+            super().error(ErrorType.NAME_ERROR, f"Unknown function {name} with {len(evaluated_args)} params")
 
         return self.call_value(self.eval_expr(func_node), evaluated_args)
 
-    def handle_builtin(self, name, args):
+    def handle_builtin(self, func_name, evaluated_args):
         """ Handle print statement by outputting the evaluated arguments """
         if func_name == "print":
             out_str = "".join(self.print_format(arg) for arg in evaluated_args)
@@ -221,7 +245,7 @@ class Interpreter(InterpreterBase):
         """ Arithmetic operations """
         if func_name in ("+","-","*","/"):
             if len(evaluated_args) != 2:
-                super().error(ErrorType.TYPE_ERROR, "Arithmetic operations require 2 arguments")
+                super().error(ErrorType.NAME_ERROR, "Arithmetic operations require 2 arguments")
 
             left = evaluated_args[0]
             right = evaluated_args[1]
@@ -265,7 +289,7 @@ class Interpreter(InterpreterBase):
         """ Handle unary logical operations """
         if func_name in ("!"):
             if len(evaluated_args) != 1:
-                super().error(ErrorType.TYPE_ERROR, f"The '!' operator requires exactly 1 argument given, while {len(evaluated_args)} arguments were given")
+                super().error(ErrorType.NAME_ERROR, f"The '!' operator requires exactly 1 argument given, while {len(evaluated_args)} arguments were given")
             if type(evaluated_args[0]) != bool:
                 super().error(ErrorType.TYPE_ERROR, "The '!' operator only acceptse boolean arguments")
             return not evaluated_args[0]
@@ -274,13 +298,15 @@ class Interpreter(InterpreterBase):
         """ Handle comparison operations """
         if func_name in ("==","!=", "<", ">", "<=", ">="):
             if len(evaluated_args) != 2:
-                super().error(ErrorType.TYPE_ERROR, "Comparison requires exactly two arguments")
+                super().error(ErrorType.NAME_ERROR, "Comparison requires exactly two arguments")
 
             left = evaluated_args[0]
             right = evaluated_args[1]
 
             if type(left) != type(right):
                 super().error(ErrorType.TYPE_ERROR, f"Comparison arguments are of type {type(left)} and {type(right)}")
+            if type(left) in (list, Func_Value, Lambda_Func):
+                super().error(ErrorType.TYPE_ERROR, "Cannot compare lists/funcs")
             if func_name == "==":
                 return left == right
             if func_name == "!=":
@@ -299,6 +325,9 @@ class Interpreter(InterpreterBase):
 
     def handle_custom_function(self, func_name, evaluated_args):
         key = (func_name, len(evaluated_args))
+        if key not in self.func_defs:
+            super().error(ErrorType.NAME_ERROR, f"{func_name} with {len(evaluated_args)} arguments was not found")
+
         func_node = self.func_defs[key]
         param_nodes = func_node.get("args")
 
