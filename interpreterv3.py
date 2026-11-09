@@ -91,7 +91,7 @@ class Interpreter(InterpreterBase):
             return "#t"
         if val is False:
             return "#f"
-        if type(val) is list return "{" + " ".join(self.print_format(c) for c in val) + "}"
+        if type(val) is list: return "{" + " ".join(self.print_format(c) for c in val) + "}"
         return str(val)
 
     def call_value(self, func, args):
